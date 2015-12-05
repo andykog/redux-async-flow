@@ -1,0 +1,27 @@
+{
+  "name": "redux-async-flow",
+  "version": "0.0.3",
+  "description": "Async middleware for Redux",
+  "main": "lib/index.js",
+  "scripts": {
+    "prepublish": "rimraf lib && babel src --out-dir lib"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/andykog/redux-async-flow.git"
+  },
+  "keywords": [
+    "redux",
+    "async",
+    "promise",
+    "middleware"
+  ],
+  "author": "Andrey Kogut <mail@andreykogut.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "babel": "^6.3.13",
+    "babel-cli": "^6.3.13",
+    "babel-core": "^6.3.13",
+    "rimraf": "^2.4.4"
+  }
+}
