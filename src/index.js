@@ -6,14 +6,15 @@ const isAsyncAction = maybeAsync => maybeAsync && maybeAsync.types instanceof Ar
 
 const isDispatchError = maybeDispatchError => maybeDispatchError && maybeDispatchError.__isDispatchError === true;
 
-const dispatchedPromise = (promise, types, dispatch) => {
+const dispatchedPromise = (promise, types, dispatch, retryAction) => {
 
     const [START, SUCCESS, FAIL] = types;
 
     dispatch({
         type: START,
         meta: {
-            async: true
+            async: true,
+            retryAction
         }
     });
 
@@ -40,7 +41,8 @@ const dispatchedPromise = (promise, types, dispatch) => {
                     payload: error,
                     error: true,
                     meta: {
-                        resolves: START
+                        resolves: START,
+                        retryAction
                     }
                 });
             } catch(dispatchError) {
@@ -54,18 +56,18 @@ const dispatchedPromise = (promise, types, dispatch) => {
 };
 
 
-const promisifiedDispatchedAsyncAction = (asyncAction, dispatch) => {
+const promisifiedDispatchedAsyncAction = (asyncAction, dispatch, retryAction) => {
 
     const payload = typeof asyncAction.payload === "function" ? asyncAction.payload() : asyncAction.payload;
 
     if (isPromise(payload)) {
 
-        return dispatchedPromise(payload, asyncAction.types, dispatch)
+        return dispatchedPromise(payload, asyncAction.types, dispatch, retryAction)
 
     } else if (isAsyncAction(payload)) {
 
         return dispatchedPromise(
-            promisifiedDispatchedAsyncAction(payload, dispatch),
+            promisifiedDispatchedAsyncAction(payload, dispatch, retryAction),
             payload.types,
             dispatch
         );
@@ -80,7 +82,7 @@ const promisifiedDispatchedAsyncAction = (asyncAction, dispatch) => {
                         if (isPromise(nextPart)) {
                             return nextPart;
                         } else if (isAsyncAction(nextPart)) {
-                            return promisifiedDispatchedAsyncAction(nextPart, dispatch)
+                            return promisifiedDispatchedAsyncAction(nextPart, dispatch, null)
                         } else {
                             return nextPart;
                         }
@@ -89,7 +91,8 @@ const promisifiedDispatchedAsyncAction = (asyncAction, dispatch) => {
                 Promise.resolve()
             ),
             asyncAction.types,
-            dispatch
+            dispatch,
+            retryAction
         );
 
     } else {
@@ -104,7 +107,7 @@ export default ({ dispatch }) => next => action => {
 
     if (isAsyncAction(action)) {
 
-        promisifiedDispatchedAsyncAction(action, dispatch)
+        promisifiedDispatchedAsyncAction(action, dispatch, action)
             .catch(error => {
                 if (isDispatchError(error)) {
                     throw error;
