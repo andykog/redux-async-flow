@@ -1,6 +1,6 @@
 {
   "name": "redux-async-flow",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Async middleware for Redux",
   "main": "lib/index.js",
   "scripts": {
